@@ -1,63 +1,63 @@
 ﻿# Stock Analysis Bot
 
-Multi-agent Telegram bot yang menganalisis saham secara paralel menggunakan 5 agen AI dengan filosofi investasi berbeda. Mendukung saham Indonesia (IDX) dan AS (NYSE/NASDAQ).
+A multi-agent Telegram bot that analyzes stocks in parallel using 5 AI agents, each with a distinct investment philosophy. Supports both Indonesian (IDX) and US (NYSE/NASDAQ) stocks.
 
-## Fitur
+## Features
 
-- **5 Agen Paralel** — setiap saham dianalisis secara bersamaan oleh 5 perspektif unik
-- **Hingga 10 saham sekaligus** — semua diproses paralel menggunakan `asyncio`
-- **Chart harga 1 tahun** — dikirim sebagai foto ke Telegram (MA20, MA50, volume)
-- **Technical indicators** — RSI, MACD, Moving Average 20/50/200
-- **DCF Valuation** — intrinsic value otomatis + margin of safety
-- **Caching 1 jam** — data yang sama tidak di-fetch ulang
-- **Progress realtime** — update status di Telegram setiap tahap
-- **Tabel perbandingan** — ringkasan BUY/HOLD/SELL untuk multi-saham
-- **Bilingual** — deteksi otomatis Bahasa Indonesia / English
-- **LangSmith tracing** — monitoring penuh setiap run
+- **5 Parallel Agents** — every stock is analyzed simultaneously by 5 unique perspectives
+- **Up to 10 stocks at once** — all processed in parallel via `asyncio`
+- **1-year price chart** — sent as a photo to Telegram (MA20, MA50, volume bars)
+- **Technical indicators** — RSI, MACD, Moving Averages 20/50/200
+- **DCF Valuation** — automatic intrinsic value calculation + margin of safety
+- **1-hour caching** — same ticker is not re-fetched within the same hour
+- **Realtime progress** — step-by-step status updates in Telegram
+- **Comparison table** — BUY/HOLD/SELL summary when analyzing multiple stocks
+- **Bilingual** — auto-detects Bahasa Indonesia or English from user message
+- **LangSmith tracing** — full observability for every run
 
-## 5 Agen Investasi
+## The 5 Investment Agents
 
-| Agen | Filosofi | Fokus |
-|------|----------|-------|
-| 🎩 Warren Buffett | Value investing | Moat, ROE, FCF, long-term earnings |
+| Agent | Philosophy | Focus |
+|-------|-----------|-------|
+| 🎩 Warren Buffett | Value investing | Moat, ROE, FCF, long-term earnings power |
 | 🧮 Joel Greenblatt | Magic Formula | Earnings yield + Return on capital |
-| 📚 Benjamin Graham | Defensive value | Margin of safety, Graham Number |
-| 👔 25-Year Veteran | Battle-tested experience | Macro, skenario bull/base/bear |
-| 📊 Quant + News | Data & sentiment | Tren finansial + analisis berita |
+| 📚 Benjamin Graham | Defensive value | Margin of safety, Graham Number, NCAV |
+| 👔 25-Year Veteran | Battle-tested experience | Macro context, bull/base/bear scenarios |
+| 📊 Quant + News | Data & sentiment fusion | Financial trends + news sentiment analysis |
 
-## Stack
+## Tech Stack
 
-- **LangGraph** — orkestrasi workflow dengan `asyncio`
-- **Google Gemini** — model LLM untuk semua agen
-- **python-telegram-bot** — interface Telegram
-- **yfinance** — data keuangan, laporan, harga historis
-- **DuckDuckGo Search (ddgs)** — berita terkini
-- **matplotlib** — chart harga
-- **LangSmith** — tracing & monitoring
+- **LangGraph** — workflow orchestration with full `asyncio` parallelism
+- **Google Gemini** — LLM powering all 5 agents
+- **python-telegram-bot** — Telegram interface
+- **yfinance** — financial statements, price history, key metrics
+- **DuckDuckGo Search (ddgs)** — real-time news and web search
+- **matplotlib** — price chart generation (thread-safe)
+- **LangSmith** — tracing and monitoring
 
-## Struktur
+## Project Structure
 
 ```
 stock-bot/
 ├── main.py                 # Entry point
 ├── bot/
-│   └── handlers.py         # Telegram handlers + progress streaming
+│   └── handlers.py         # Telegram handlers + streaming progress
 ├── graph/
-│   ├── state.py            # LangGraph state
-│   ├── nodes.py            # 4 node: parse → fetch → analyze → synthesize
+│   ├── state.py            # LangGraph TypedDict state
+│   ├── nodes.py            # 4 nodes: parse → fetch → analyze → synthesize
 │   └── workflow.py         # Graph assembly
 ├── agents/
-│   └── prompts.py          # System prompt 5 agen
+│   └── prompts.py          # System prompts for all 5 agents
 ├── tools/
 │   ├── financial.py        # yfinance + technicals + DCF + cache
 │   ├── search.py           # DuckDuckGo news + cache
-│   ├── chart.py            # Price chart generator (thread-safe)
-│   └── cache.py            # In-memory TTL cache (1 jam)
+│   ├── chart.py            # Thread-safe price chart generator
+│   └── cache.py            # In-memory TTL cache (1 hour)
 └── utils/
     └── formatter.py        # Telegram HTML formatter + comparison table
 ```
 
-## Instalasi
+## Installation
 
 ```bash
 git clone <repo-url>
@@ -65,7 +65,7 @@ cd stock-bot
 pip install -r requirements.txt
 ```
 
-Buat file `.env`:
+Create a `.env` file:
 
 ```env
 LANGCHAIN_TRACING_V2=true
@@ -76,53 +76,54 @@ GOOGLE_API_KEY=your_google_ai_key
 GEMINI_MODEL=gemini-3-flash-preview
 ```
 
-Jalankan:
+Run:
 
 ```bash
 python main.py
 ```
 
-## Cara Pakai
+## Usage
 
-Kirim pesan ke bot Telegram:
+Send a message to your Telegram bot:
 
 ```
 Analisis BBCA dan TLKM
 Analyze AAPL, MSFT, NVDA
 GOTO.JK, BREN.JK, AAPL, TSLA
-Bandingkan Apple dan Microsoft
+Compare Apple and Microsoft
 ```
 
-Bot akan membalas dengan:
-1. Progress update realtime
-2. Chart harga 1 tahun per saham
-3. Analisis dari 5 agen
-4. Sintesis akhir + prediksi harga
-5. Tabel perbandingan (jika >1 saham)
+The bot responds with:
+1. Realtime progress updates
+2. 1-year price chart per stock (photo)
+3. Analysis from all 5 agents
+4. Final synthesis + price prediction
+5. Comparison table (if more than 1 stock)
 
-## Alur Kerja
+## How It Works
 
 ```
 User Message
     │
     ▼
-parse_stocks  →  Ekstrak ticker, deteksi bahasa
+parse_stocks   →  Extract tickers, detect language (Gemini)
     │
     ▼
-fetch_data    →  yfinance + DuckDuckGo (semua saham paralel)
-    │            [chart generation dimulai di background]
+fetch_data     →  yfinance + DuckDuckGo for all stocks in parallel
+    │              [chart generation starts in background]
     ▼
-analyze_stocks → 5 agen × N saham = semua paralel (asyncio.gather)
+analyze_stocks →  5 agents × N stocks = all parallel (asyncio.gather)
     │
     ▼
-synthesize    →  Sintesis per saham (paralel)
+synthesize     →  Per-stock synthesis + price prediction (parallel)
     │
     ▼
-Telegram      →  Chart foto + analisis teks + tabel perbandingan
+Telegram       →  Chart photo + analysis text + comparison table
 ```
 
-## Catatan
+## Notes
 
-- Tier 1 Gemini API: rate limit berlaku, disarankan max 5 saham per request
-- Data keuangan dari yfinance bisa tidak lengkap untuk saham IDX tertentu
-- Cache berlaku 1 jam per ticker (in-memory, reset saat bot restart)
+- Gemini API Tier 1 rate limits apply — recommended max 5 stocks per request
+- Financial data from yfinance may be incomplete for some IDX tickers
+- Cache is in-memory and resets when the bot restarts
+- Keep your `.env` file private — never commit API keys to version control
